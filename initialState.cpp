@@ -27,8 +27,8 @@ InitialStateModel::InitialStateModel(uint32_t name):ICalculateElement(name)
     triggerStart    = new Trigger<uint8_t>(0);
     
     //! начальные условия по умолчанию
-    initData.plane.coord.lon      = gradToRadian(38.127312777777);
-    initData.plane.coord.lat      = gradToRadian(55.5641416666666);
+    initData.plane.coord.lon      = gradToRad * 38.127312777777;
+    initData.plane.coord.lat      = gradToRad * 55.5641416666666;
     initData.plane.v_ist          = 0.0001;
     initData.plane.coord.h        = 1000.0;
     initData.plane.coord.onGround = 1;
@@ -90,6 +90,11 @@ void InitialStateModel::calculate()
         //channel->setStop();
         regime.stop  = 1;
         regime.start = 0;
+
+        pKin->kin.tan_cam       = pKin->kin.tan;
+        pKin->kin.gamma_cam     = pKin->kin.gamma;
+        pKin->kin.psi_cam       = pKin->kin.psi;
+
     }
 
     if(triggerStart->isHighFront() == true && regime.restart == 0)
@@ -98,6 +103,7 @@ void InitialStateModel::calculate()
         regime.stop    = 0;
         regime.restart = 0;
         pKin->setStart();
+
         //channel->setStart();
     }
 
@@ -113,6 +119,13 @@ void InitialStateModel::calculate()
     
     if(regime.restart == 1)
         calcInitialKin();
+
+    if(regime.stop == 1)
+    {
+        pKin->kin.tan_cam       = pKin->kin.tan;
+        pKin->kin.gamma_cam     = pKin->kin.gamma;
+        pKin->kin.psi_cam       = pKin->kin.psi;
+    }
     
     if(timer->isLimit() == true )
     {
@@ -133,6 +146,10 @@ void InitialStateModel::calcInitialKin()
 
     pKin->kin.tan       = 0; //3 * gradToRad;
     pKin->kin.gamma     = 0; //TEST: 3 * gradToRad;
+
+    pKin->kin.tan_cam       = pKin->kin.tan;
+    pKin->kin.gamma_cam     = pKin->kin.gamma;
+    pKin->kin.psi_cam       = pKin->kin.psi;
 
     pKin->kin.Vc    = initData.plane.v_ist;
     if(initData.plane.coord.onGround)
